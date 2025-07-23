@@ -44,14 +44,26 @@ void main(List<String> arguments) {
     }
 
     // Act on the arguments provided.
-    print('Positional arguments: ${results.rest}');
     if (verbose) {
       print('[VERBOSE] All arguments: ${results.arguments}');
     }
+    if (results.rest.isEmpty) {
+      print('No input provided. Please provide a string to add.');
+      return;
+    }
+    print(add(results.rest.first));
   } on FormatException catch (e) {
     // Print usage information if an invalid argument was provided.
     print(e.message);
     print('');
     printUsage(argParser);
   }
+}
+
+int add(String input) {
+  if (input.isEmpty) {
+    return 0;
+  }
+  // Placeholder for actual calculation logic.
+  return input.length; // Example: return the length of the input string.
 }
