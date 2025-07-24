@@ -54,7 +54,17 @@ void main(List<String> arguments) {
     if (results.rest.isEmpty) {
       print('No arguments provided. Please provide a string to add.');
       // Read input from stdin if no arguments are provided.
-      input = stdin.readLineSync() ?? "";
+      List<String> lines = [];
+      String?
+      line; // Use nullable String to handle potential null from readLineSync()
+
+      do {
+        line = stdin.readLineSync();
+        if (line != null && line.isNotEmpty) {
+          lines.add(line);
+        }
+      } while (line != null && line.isNotEmpty);
+      input = lines.join('\n');
     } else {
       // Use the first argument as input.
       input = results.rest.first;
@@ -77,8 +87,8 @@ int add(String numbers) {
 }
 
 List<String> extractDelimiter(String input) {
-  final RegExp delimiterPattern = RegExp(r'^\/\/(.)\n.*');
-  final RegExp customDelimiterPattern = RegExp(r'^\/\/\[(.*)\]\n.*');
+  final RegExp delimiterPattern = RegExp(r'^\/\/(.)\n(.|\n)*');
+  final RegExp customDelimiterPattern = RegExp(r'^\/\/\[(.*)\]\n(.|\n)*');
   final matches = delimiterPattern.allMatches(input);
   if (matches.isNotEmpty) {
     return [matches.first.group(1) ?? ','];
@@ -93,7 +103,7 @@ List<int> extractNumbers(String input) {
   if (input.startsWith('//')) {
     final delimiter = extractDelimiter(input);
     final buffer = input.split('\n').sublist(1).join(',');
-    final bufferList = buffer.split(RegExp('[${delimiter.join('')}]'));
+    final bufferList = buffer.split(RegExp('[${delimiter.join('')},]'));
     return bufferList.map(int.parse).toList();
   } else {
     return input.split('\n').join(',').split(',').map(int.parse).toList();
