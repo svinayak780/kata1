@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:args/args.dart';
 
 const String version = '0.0.1';
@@ -29,6 +31,7 @@ void main(List<String> arguments) {
   try {
     final ArgResults results = argParser.parse(arguments);
     bool verbose = false;
+    late String input;
 
     // Process the parsed arguments.
     if (results.flag('help')) {
@@ -47,11 +50,17 @@ void main(List<String> arguments) {
     if (verbose) {
       print('[VERBOSE] All arguments: ${results.arguments}');
     }
+    // Check if the input string is provided.
     if (results.rest.isEmpty) {
-      print('No input provided. Please provide a string to add.');
-      return;
+      print('No arguments provided. Please provide a string to add.');
+      // Read input from stdin if no arguments are provided.
+      input = stdin.readLineSync() ?? "";
+    } else {
+      // Use the first argument as input.
+      input = results.rest.first;
     }
-    print(add(results.rest.first));
+    // Call `add` function with the input string.
+    print(add(input));
   } on FormatException catch (e) {
     // Print usage information if an invalid argument was provided.
     print(e.message);
@@ -60,10 +69,40 @@ void main(List<String> arguments) {
   }
 }
 
-int add(String input) {
-  if (input.isEmpty) {
+int add(String numbers) {
+  if (numbers.isEmpty) {
     return 0;
   }
-  // Placeholder for actual calculation logic.
-  return input.length; // Example: return the length of the input string.
+  return addNumbers(extractNumbers(numbers));
+}
+
+String extractDelimiter(String input) {
+  final RegExp delimiterPattern = RegExp(r'^\/\/(.)\n.*');
+  final RegExp customDelimiterPattern = RegExp(r'^\/\/\[(.*)\]\n.*');
+  final matches = delimiterPattern.allMatches(input);
+  if (matches.isNotEmpty) {
+    return matches.first.group(1) ?? ',';
+  } else if (customDelimiterPattern.hasMatch(input)) {
+    return customDelimiterPattern.firstMatch(input)?.group(1) ?? ',';
+  }
+  return ',';
+}
+
+List<int> extractNumbers(String input) {
+  if (input.startsWith('//')) {
+    final delimiter = extractDelimiter(input);
+    final buffer = input.split('\n').sublist(1).join(delimiter);
+    final bufferList = buffer.split(delimiter);
+    return bufferList.map(int.parse).toList();
+  } else {
+    return input.split('\n').join(',').split(',').map(int.parse).toList();
+  }
+}
+
+int addNumbers(List<int> numbers) {
+  final negatives = numbers.where((n) => n < 0).toList();
+  if (negatives.isNotEmpty) {
+    throw FormatException('negatives not allowed: ${negatives.join(', ')}');
+  }
+  return numbers.fold(0, (a, b) => b < 1000 ? a + b : a);
 }
