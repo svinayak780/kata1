@@ -51,5 +51,8 @@ void main() {
     test('custom delimiter length', () {
       expect(add("//[***]\n1***2***3"), 6);
     });
+    test('multiple custom delimiters', () {
+      expect(add("//[*][%]\n1*2%3"), 6);
+    });
   });
 }

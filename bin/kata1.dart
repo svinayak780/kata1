@@ -76,23 +76,24 @@ int add(String numbers) {
   return addNumbers(extractNumbers(numbers));
 }
 
-String extractDelimiter(String input) {
+List<String> extractDelimiter(String input) {
   final RegExp delimiterPattern = RegExp(r'^\/\/(.)\n.*');
   final RegExp customDelimiterPattern = RegExp(r'^\/\/\[(.*)\]\n.*');
   final matches = delimiterPattern.allMatches(input);
   if (matches.isNotEmpty) {
-    return matches.first.group(1) ?? ',';
+    return [matches.first.group(1) ?? ','];
   } else if (customDelimiterPattern.hasMatch(input)) {
-    return customDelimiterPattern.firstMatch(input)?.group(1) ?? ',';
+    return customDelimiterPattern.firstMatch(input)?.group(1)?.split('][') ??
+        [','];
   }
-  return ',';
+  return [','];
 }
 
 List<int> extractNumbers(String input) {
   if (input.startsWith('//')) {
     final delimiter = extractDelimiter(input);
-    final buffer = input.split('\n').sublist(1).join(delimiter);
-    final bufferList = buffer.split(delimiter);
+    final buffer = input.split('\n').sublist(1).join(',');
+    final bufferList = buffer.split(RegExp('[${delimiter.join('')}]'));
     return bufferList.map(int.parse).toList();
   } else {
     return input.split('\n').join(',').split(',').map(int.parse).toList();
